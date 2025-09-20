@@ -30,7 +30,7 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public UserDto getUserById(Long id){
+    public UserDto getUserById(Long id) {
         return userMapper.toUserDto(users.get(id));
     }
 
