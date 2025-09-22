@@ -3,6 +3,7 @@ package ru.practicum.shareit.user;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserRepository {
     List<UserDto> getAllUsers();
@@ -16,4 +17,6 @@ public interface UserRepository {
     void deleteUser(Long id);
 
     boolean isExists(Long id);
+
+    Set<String> getEmailSet();
 }

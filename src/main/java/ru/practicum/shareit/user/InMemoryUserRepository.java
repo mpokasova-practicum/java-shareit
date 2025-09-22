@@ -1,16 +1,14 @@
 package ru.practicum.shareit.user;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
@@ -19,8 +17,18 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 public class InMemoryUserRepository implements UserRepository {
     private final Map<Long, User> users = new HashMap<>();
-    @Autowired
+    private final Set<String> emailSet = new HashSet<>();
     private final UserMapper userMapper;
+
+    @PostConstruct
+    public void initEmailSet() {
+        users.values().forEach(user -> emailSet.add(user.getEmail()));
+    }
+
+    @Override
+    public Set<String> getEmailSet() {
+        return emailSet;
+    }
 
     @Override
     public List<UserDto> getAllUsers() {
@@ -39,6 +47,7 @@ public class InMemoryUserRepository implements UserRepository {
         userDto.setId(getNextId());
         log.info("Создан идентификатор пользователя: {}", userDto.getId());
         users.put(userDto.getId(), userMapper.toUser(userDto));
+        emailSet.add(userDto.getEmail());
         log.info("Пользователь успешно сохранен");
         return userDto;
     }

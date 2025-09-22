@@ -2,7 +2,6 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
@@ -14,7 +13,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    @Autowired
     private final UserRepository repository;
 
     @Override
@@ -63,10 +61,8 @@ public class UserServiceImpl implements UserService {
     }
 
     private void validateEmail(String email) {
-        List<UserDto> users = repository.getAllUsers();
-        boolean hasSameEmail = users.stream().anyMatch(
-                user -> user.getEmail().equals(email)
-        );
+        boolean hasSameEmail = repository.getEmailSet().contains(email);
+
         if (hasSameEmail) {
             log.warn("Пользователь с таким email: {} уже существует", email);
             throw new ValidationException("Пользователь с таким email уже существует");

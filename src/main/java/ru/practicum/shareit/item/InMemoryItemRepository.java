@@ -2,7 +2,6 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
@@ -20,7 +19,6 @@ import static java.util.stream.Collectors.toList;
 @Slf4j
 public class InMemoryItemRepository implements ItemRepository {
     private final Map<Long, Item> items = new HashMap<>();
-    @Autowired
     private final ItemMapper itemMapper;
 
     @Override
