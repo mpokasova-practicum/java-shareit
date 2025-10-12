@@ -1,47 +1,47 @@
-package ru.practicum.shareit.request;
+package ru.practicum.shareit.item.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-/**
- * TODO Sprint add-item-requests.
- */
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "requests")
+@Table(name = "comments")
 @Getter
 @Setter
 @ToString
-public class ItemRequest {
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
-    @NotBlank
-    private String description;
+    private String text;
 
     @ManyToOne
-    @JoinColumn(name = "requester_id")
-    private User requester;
+    @JoinColumn(name = "item_id")
+    private Item item;
 
-    @Column(name = "create_date")
+    @ManyToOne
+    @JoinColumn(name = "author_id")
+    private User author;
+
+    @Column(name="create_date")
     private LocalDateTime created;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ItemRequest)) return false;
-        return id != null && id.equals(((ItemRequest) o).getId());
+        if (!(o instanceof Comment)) return false;
+        return id != null && id.equals(((Comment) o).getId());
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Objects.hashCode(id);
     }
 }
