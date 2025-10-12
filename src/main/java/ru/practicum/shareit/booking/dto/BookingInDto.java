@@ -17,11 +17,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class BookingInDto {
     @NotNull
-    @FutureOrPresent
+    @FutureOrPresent(message = "Недопустимая дата начала бронирования")
     private LocalDateTime start;
 
     @NotNull
-    @Future
+    @Future(message = "Недопустимая дата окончания бронирования")
     private LocalDateTime end;
 
     @NotNull
