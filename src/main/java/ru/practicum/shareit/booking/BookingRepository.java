@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findAllByBookerId(Long bookerId, Sort sort);
@@ -33,9 +32,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findAllByItemIdAndBookerIdAndStatusAndEndIsBefore(Long itemId, Long bookerId, Status status, LocalDateTime end);
 
     @Query("""
-        SELECT b FROM Booking b 
-        WHERE b.item.id IN :itemIds 
-        AND b.end < :now 
+        SELECT b FROM Booking b
+        WHERE b.item.id IN :itemIds
+        AND b.end < :now
         AND b.status = 'APPROVED'
         ORDER BY b.end DESC
         """)
@@ -43,9 +42,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                            @Param("now") LocalDateTime now);
 
     @Query("""
-        SELECT b FROM Booking b 
-        WHERE b.item.id IN :itemIds 
-        AND b.start > :now 
+        SELECT b FROM Booking b
+        WHERE b.item.id IN :itemIds
+        AND b.start > :now
         AND b.status = 'APPROVED'
         ORDER BY b.start ASC
         """)

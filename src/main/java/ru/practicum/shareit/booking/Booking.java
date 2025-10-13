@@ -6,7 +6,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * TODO Sprint add-bookings.
