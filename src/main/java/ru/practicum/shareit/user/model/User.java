@@ -24,7 +24,6 @@ public class User {
     private String name;
 
     @Column
-    @Email
     @NotBlank
     private String email;
 

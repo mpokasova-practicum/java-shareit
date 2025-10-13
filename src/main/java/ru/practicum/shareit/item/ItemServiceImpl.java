@@ -21,7 +21,8 @@ import ru.practicum.shareit.user.model.User;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -44,38 +45,53 @@ public class ItemServiceImpl implements ItemService {
                 () -> new NotFoundException("Пользователь с данным id не найден")
         );
         List<Item> items = itemRepository.findAllByOwnerId(userId);
-        List<ItemWithDatesDto> itemWithDatesDtos = items.stream()
-                .map(itemMapper::toItemWithDatesDto)
+
+        List<Long> itemIds = items.stream()
+                .map(Item::getId)
                 .toList();
 
-        for (ItemWithDatesDto itemDto : itemWithDatesDtos) {
-            Optional<Booking> lastBooking = bookingRepository.findFirstByItemIdAndEndIsBeforeOrderByEndDesc(
-                    itemDto.getId(), LocalDateTime.now());
-            if (lastBooking.isPresent()) {
-                BookingItemDto lastBookingDto = bookingMapper.toBookingItemDto(lastBooking.get());
-                itemDto.setLastBooking(lastBookingDto);
-            }
+        Map<Long, Booking> lastBookingsMap = bookingRepository.findLastBookingsForItems(itemIds, LocalDateTime.now())
+                .stream()
+                .collect(Collectors.toMap(
+                        booking -> booking.getItem().getId(),
+                        booking -> booking
+                ));
+        Map<Long, Booking> nextBookingsMap = bookingRepository.findLastBookingsForItems(itemIds, LocalDateTime.now())
+                .stream()
+                .collect(Collectors.toMap(
+                        booking -> booking.getItem().getId(),
+                        booking -> booking
+                ));
+        Map<Long, List<Comment>> commentsMap = commentRepository.findAllByItemIdIn(itemIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        comment -> comment.getItem().getId()));
 
-            Optional<Booking> nextBooking = bookingRepository.findFirstByItemIdAndStartIsAfterOrderByStartDesc(
-                    itemDto.getId(), LocalDateTime.now());
-            if (nextBooking.isPresent()) {
-                BookingItemDto nextBookingDto = bookingMapper.toBookingItemDto(nextBooking.get());
-                itemDto.setNextBooking(nextBookingDto);
-            }
+        return items.stream()
+                .map(item -> {
+                    ItemWithDatesDto itemDto = itemMapper.toItemWithDatesDto(item);
+                    if (lastBookingsMap.containsKey(item.getId())) {
+                        BookingItemDto lastBookingDto = bookingMapper.toBookingItemDto(
+                                lastBookingsMap.get(item.getId()));
+                        itemDto.setLastBooking(lastBookingDto);
+                    }
 
-            List<Comment> comments = commentRepository.findAllByItemId(itemDto.getId());
-            if (!comments.isEmpty()) {
-                List<CommentDto> commentDtos = comments.stream()
-                        .map(commentMapper::toCommentDto)
-                        .toList();
-                itemDto.setComments(commentDtos);
-            }
-        }
+                    if (nextBookingsMap.containsKey(item.getId())) {
+                        BookingItemDto nextBookingDto = bookingMapper.toBookingItemDto(
+                                nextBookingsMap.get(item.getId()));
+                        itemDto.setNextBooking(nextBookingDto);
+                    }
 
-//        itemWithDatesDtos.sort(Comparator.comparing(o -> o.getLastBooking().getStart(),
-//                Comparator.nullsLast(Comparator.reverseOrder())));
-
-        return itemWithDatesDtos;
+                    if (commentsMap.containsKey(item.getId())) {
+                        List<CommentDto> commentDtos = commentsMap.get(item.getId())
+                                .stream()
+                                .map(commentMapper::toCommentDto)
+                                .toList();
+                        itemDto.setComments(commentDtos);
+                    }
+                    return itemDto;
+                })
+                .toList();
     }
 
     @Override
