@@ -1,22 +1,10 @@
 package ru.practicum.shareit.user;
 
-import ru.practicum.shareit.user.dto.UserDto;
+import org.springframework.data.jpa.repository.JpaRepository;
+import ru.practicum.shareit.user.model.User;
 
-import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 
-public interface UserRepository {
-    List<UserDto> getAllUsers();
-
-    UserDto getUserById(Long id);
-
-    UserDto createUser(UserDto userDto);
-
-    UserDto updateUser(Long id, UserDto userDto);
-
-    void deleteUser(Long id);
-
-    boolean isExists(Long id);
-
-    Set<String> getEmailSet();
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByEmail(String email);
 }
