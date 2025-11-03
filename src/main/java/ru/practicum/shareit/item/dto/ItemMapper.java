@@ -24,6 +24,14 @@ public class ItemMapper {
                 .build();
     }
 
+    public ItemForRequestDto toItemForRequestDto(Item item) {
+        return ItemForRequestDto.builder()
+                .itemId(item.getId())
+                .name(item.getName())
+                .ownerId(item.getOwner().getId())
+                .build();
+    }
+
     public Item toItem(ItemDto itemDto) {
         Item item = new Item();
         item.setName(itemDto.getName());
