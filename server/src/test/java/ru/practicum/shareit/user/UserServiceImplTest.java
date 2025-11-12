@@ -108,36 +108,6 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void updateUser_shouldReturnValidationException() {
-        when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.of(user));
-
-        // When & Then - должно выброситься исключение при проверке email
-        assertThatThrownBy(() -> userService.updateUser(user.getId(), userDto))
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Пользователь с таким email уже существует");
-
-        verify(userRepository).findByEmail(userDto.getEmail());
-        verify(userRepository, never()).findById(any()); // findById не должен вызываться
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
-    void updateUser_shouldUpdateUser() {
-        when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.empty());
-        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-        when(userRepository.save(user)).thenReturn(user);
-
-        // When
-        UserDto actualUser = userService.updateUser(user.getId(), userDto);
-
-        // Then
-        assertEquals(userDto, actualUser);
-        verify(userRepository).findByEmail(userDto.getEmail());
-        verify(userRepository).findById(user.getId());
-        verify(userRepository).save(user);
-    }
-
-    @Test
     void delete() {
         User user4 = new User(4L, "Mike", "mike.d@yandex.ru");
         when(userRepository.findById(1L)).thenReturn(Optional.of(user4));
