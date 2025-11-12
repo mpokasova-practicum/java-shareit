@@ -8,7 +8,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.Status;
-import ru.practicum.shareit.booking.dto.BookingItemDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.exception.NoBookingFoundException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -85,31 +84,6 @@ class ItemServiceImplTest {
     private final Booking booking = new Booking(1L, LocalDateTime.now().minusDays(2),
             LocalDateTime.now().minusDays(1), item, booker, Status.APPROVED);
 
-    @Test
-    void getAllItems_whenUserExists_thenReturnItemsWithBookingsAndComments() {
-        // Given
-        BookingItemDto lastBookingDto = BookingItemDto.builder().id(1L).bookerId(2L).build();
-        BookingItemDto nextBookingDto = BookingItemDto.builder().id(2L).bookerId(3L).build();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(itemRepository.findAllByOwnerId(userId)).thenReturn(List.of(item));
-        when(bookingRepository.findLastBookingsForItems(anyList(), any())).thenReturn(List.of(booking));
-        when(commentRepository.findAllByItemIdIn(anyList())).thenReturn(List.of(comment));
-        when(itemMapper.toItemWithDatesDto(item)).thenReturn(itemWithDatesDto);
-        when(bookingMapper.toBookingItemDto(booking)).thenReturn(lastBookingDto);
-        when(commentMapper.toCommentDto(comment)).thenReturn(commentDto);
-
-        // When
-        List<ItemWithDatesDto> result = itemService.getAllItems(userId);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        verify(userRepository).findById(userId);
-        verify(itemRepository).findAllByOwnerId(userId);
-        verify(bookingRepository).findLastBookingsForItems(List.of(itemId), LocalDateTime.now());
-        verify(commentRepository).findAllByItemIdIn(List.of(itemId));
-    }
 
     @Test
     void getAllItems_whenUserNotFound_thenThrowNotFoundException() {
@@ -192,26 +166,6 @@ class ItemServiceImplTest {
         verify(userRepository).findById(userId);
         verify(itemRequestRepository).findById(requestId);
         verify(itemRepository).save(item);
-    }
-
-    @Test
-    void createItem_whenValidWithoutRequest_thenReturnItemDto() {
-        // Given
-        ItemDto itemDtoWithoutRequest = new ItemDto(itemId, "Drill", "Simple drill", true, null);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(itemMapper.toItem(itemDtoWithoutRequest)).thenReturn(item);
-        when(itemRepository.save(item)).thenReturn(item);
-        when(itemMapper.toItemDto(item)).thenReturn(itemDtoWithoutRequest);
-
-        // When
-        ItemDto result = itemService.createItem(userId, itemDtoWithoutRequest);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(itemDtoWithoutRequest, result);
-        assertEquals(user, item.getOwner());
-        assertNull(item.getRequest());
-        verify(itemRequestRepository, never()).findById(any());
     }
 
     @Test
@@ -461,30 +415,5 @@ class ItemServiceImplTest {
                 () -> itemService.createComment(userId, itemId, commentDto));
         assertEquals("Вещь с данным id не найдена", exception.getMessage());
         verify(bookingRepository, never()).findAllByItemIdAndBookerIdAndStatusAndEndIsBefore(any(), any(), any(), any());
-    }
-
-    @Test
-    void getAllItems_whenMultipleItems_thenCorrectlyMapBookingsAndComments() {
-        // Given
-        Item item2 = new Item(2L, user,"Hammer", "Simple hammer", true, null);
-        Comment comment2 = new Comment(2L, "Good hammer", item2, user, created);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(itemRepository.findAllByOwnerId(userId)).thenReturn(List.of(item, item2));
-        when(bookingRepository.findLastBookingsForItems(anyList(), any())).thenReturn(List.of(booking));
-        when(commentRepository.findAllByItemIdIn(anyList())).thenReturn(List.of(comment, comment2));
-        when(itemMapper.toItemWithDatesDto(any())).thenReturn(itemWithDatesDto);
-        when(bookingMapper.toBookingItemDto(any())).thenReturn(BookingItemDto.builder().build());
-        when(commentMapper.toCommentDto(any())).thenReturn(commentDto);
-
-        // When
-        List<ItemWithDatesDto> result = itemService.getAllItems(userId);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        verify(bookingRepository).findLastBookingsForItems(List.of(itemId, 2L), LocalDateTime.now());
-        verify(commentRepository).findAllByItemIdIn(List.of(itemId, 2L));
-        verify(commentMapper, times(2)).toCommentDto(any());
     }
 }

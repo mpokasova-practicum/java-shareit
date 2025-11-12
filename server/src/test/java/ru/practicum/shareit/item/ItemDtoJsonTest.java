@@ -35,15 +35,7 @@ public class ItemDtoJsonTest {
 
     @Test
     void shouldDeserializeItemDto() throws Exception {
-        String json = """
-            {
-                "id": 1,
-                "name": "Дрель",
-                "description": "Простая дрель",
-                "available": true,
-                "requestId": 10
-            }
-            """;
+        String json = "{\"id\": 1, \"name\": \"Дрель\", \"description\": \"Простая дрель\", \"available\": true, \"requestId\": 10}";
 
         ItemDto dto = objectMapper.readValue(json, ItemDto.class);
 

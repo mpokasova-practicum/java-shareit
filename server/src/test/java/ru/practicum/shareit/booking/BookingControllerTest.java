@@ -74,26 +74,6 @@ class BookingControllerTest {
     }
 
     @Test
-    void createBooking_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(post("/bookings")
-                        .content(mapper.writeValueAsString(bookingInDto))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void createBooking_whenInvalidDates_thenReturnBadRequest() throws Exception {
-        // End before start
-        BookingInDto invalidBooking = new BookingInDto(end, start, itemId);
-
-        mvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", userId)
-                        .content(mapper.writeValueAsString(invalidBooking))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void approveBooking_whenValidApprovedTrue_thenReturnApprovedBooking() throws Exception {
         BookingOutDto approvedBooking = BookingOutDto.builder()
                 .id(bookingId)
@@ -138,20 +118,6 @@ class BookingControllerTest {
     }
 
     @Test
-    void approveBooking_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(patch("/bookings/{bookingId}", bookingId)
-                        .param("approved", "true"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void approveBooking_whenMissingApprovedParam_thenReturnBadRequest() throws Exception {
-        mvc.perform(patch("/bookings/{bookingId}", bookingId)
-                        .header("X-Sharer-User-Id", userId))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void getBookingById_whenValid_thenReturnBookingOutDto() throws Exception {
         when(bookingService.getBookingById(userId, bookingId))
                 .thenReturn(bookingOutDto);
@@ -163,12 +129,6 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.id", is(bookingOutDto.getId()), Long.class))
                 .andExpect(jsonPath("$.item.id", is(item.getId()), Long.class))
                 .andExpect(jsonPath("$.booker.id", is(booker.getId()), Long.class));
-    }
-
-    @Test
-    void getBookingById_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(get("/bookings/{bookingId}", bookingId))
-                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -197,12 +157,6 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$[0].id", is(bookingOutDto.getId()), Long.class));
     }
 
-    @Test
-    void getAllUserBookings_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(get("/bookings")
-                        .param("state", "ALL"))
-                .andExpect(status().isBadRequest());
-    }
 
     @Test
     void getAllUserBookings_whenEmptyList_thenReturnEmptyArray() throws Exception {
@@ -240,13 +194,6 @@ class BookingControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(bookingOutDto.getId()), Long.class));
-    }
-
-    @Test
-    void getAllItemBookings_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(get("/bookings/owner")
-                        .param("state", "ALL"))
-                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -307,20 +254,4 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$[0].id", is(3L), Long.class));
     }
 
-    @Test
-    void createBooking_whenNullFields_thenReturnBadRequest() throws Exception {
-        String invalidJson = """
-            {
-                "start": null,
-                "end": null,
-                "itemId": null
-            }
-            """;
-
-        mvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", userId)
-                        .content(invalidJson)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
 }

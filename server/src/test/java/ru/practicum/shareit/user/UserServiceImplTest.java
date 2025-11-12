@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
@@ -26,7 +27,10 @@ public class UserServiceImplTest {
     private UserRepository userRepository;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userService;
+
+    @Mock
+    private UserMapper userMapper;
 
     private final User user = new User(1L, "Ivanov Ivan", "ivanov@gmail.com");
     private final UserDto userDto = new UserDto(1L, "Ivanov Ivan", "ivanov@gmail.com");
@@ -35,7 +39,7 @@ public class UserServiceImplTest {
 
     @Test
     void getAllUsers_shouldReturnListNotEmpty() {
-        Mockito.when(userRepository.findAll())
+        when(userRepository.findAll())
                 .thenReturn(users);
 
         List<UserDto> expectedList = Stream.of(user, user2)
@@ -47,7 +51,7 @@ public class UserServiceImplTest {
 
     @Test
     void getUserById_shouldReturnUser() {
-        Mockito.when(userRepository.findById(any()))
+        when(userRepository.findById(any()))
                 .thenReturn(Optional.of(user));
         UserDto actualUser = userService.getUserById(user.getId());
 
@@ -56,7 +60,7 @@ public class UserServiceImplTest {
 
     @Test
     void getUserById_shouldReturnNotFoundException() {
-        Mockito.when(userRepository.findById(any()))
+        when(userRepository.findById(any()))
                 .thenReturn(Optional.empty());
         assertThatThrownBy(() -> userService.getUserById(1L))
                 .isInstanceOf(NotFoundException.class);
@@ -64,23 +68,40 @@ public class UserServiceImplTest {
 
     @Test
     void createUser_shouldCreateUser() {
-        Mockito.when(userRepository.save(any()))
-                .thenReturn(user);
-        UserDto actualUser = userService.createUser(userDto);
-        assertEquals(userDto, actualUser);
+        // Given
+        UserDto inputDto = new UserDto(null, "Alex", "alex@mail.ru");
+        User userToSave = new User(null, "Alex", "alex@mail.ru");
+        User savedUser = new User(1L, "Alex", "alex@mail.ru");
+        UserDto expectedDto = new UserDto(1L, "Alex", "alex@mail.ru");
+
+        when(userRepository.findByEmail("alex@mail.ru")).thenReturn(Optional.empty());
+        when(userMapper.toUser(inputDto)).thenReturn(userToSave);
+        when(userRepository.save(userToSave)).thenReturn(savedUser);
+
+        // When
+        UserDto actualUser = userService.createUser(inputDto);
+
+        // Then
+        assertEquals(expectedDto, actualUser);
     }
 
     @Test
     void createUser_shouldReturnValidationException() {
-        Mockito.when(userRepository.save(any(User.class)))
-                .thenThrow(ValidationException.class);
+        // Given
+        when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.of(user));
+
+        // When & Then
         assertThatThrownBy(() -> userService.createUser(userDto))
-                .isInstanceOf(ValidationException.class);
+                .isInstanceOf(ValidationException.class)
+                .hasMessage("Пользователь с таким email уже существует");
+
+        verify(userRepository).findByEmail(userDto.getEmail());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
     void updateUser_shouldReturnNotFoundException() {
-        Mockito.when(userRepository.findById(any()))
+        when(userRepository.findById(any()))
                 .thenReturn(Optional.empty());
         assertThatThrownBy(() -> userService.updateUser(1L, userDto))
                 .isInstanceOf(NotFoundException.class);
@@ -88,24 +109,44 @@ public class UserServiceImplTest {
 
     @Test
     void updateUser_shouldReturnValidationException() {
-        Mockito.when(userRepository.save(any(User.class)))
-                .thenThrow(ValidationException.class);
+        when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.of(user));
+
+        // When & Then - должно выброситься исключение при проверке email
         assertThatThrownBy(() -> userService.updateUser(user.getId(), userDto))
-                .isInstanceOf(ValidationException.class);
+                .isInstanceOf(ValidationException.class)
+                .hasMessage("Пользователь с таким email уже существует");
+
+        verify(userRepository).findByEmail(userDto.getEmail());
+        verify(userRepository, never()).findById(any()); // findById не должен вызываться
+        verify(userRepository, never()).save(any());
     }
 
     @Test
     void updateUser_shouldUpdateUser() {
-        Mockito.when(userRepository.save(any()))
-                .thenReturn(user);
+        when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.empty());
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+
+        // When
         UserDto actualUser = userService.updateUser(user.getId(), userDto);
+
+        // Then
         assertEquals(userDto, actualUser);
+        verify(userRepository).findByEmail(userDto.getEmail());
+        verify(userRepository).findById(user.getId());
+        verify(userRepository).save(user);
     }
 
     @Test
     void delete() {
         User user4 = new User(4L, "Mike", "mike.d@yandex.ru");
-        userService.deleteUser(user4.getId());
-        Mockito.verify(userRepository, Mockito.times(1)).deleteById(4L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user4));
+
+        // When
+        userService.deleteUser(1L);
+
+        // Then
+        verify(userRepository, Mockito.times(1)).findById(1L);
+        verify(userRepository, Mockito.times(1)).deleteById(1L);
     }
 }

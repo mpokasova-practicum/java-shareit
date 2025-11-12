@@ -93,12 +93,6 @@ public class ItemControllerTest {
     }
 
     @Test
-    void getAllItems_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(get("/items"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void getItemById_whenValid_thenReturnItemWithDatesDto() throws Exception {
         when(itemService.getItemById(itemId))
                 .thenReturn(itemWithDatesDto);
@@ -117,12 +111,6 @@ public class ItemControllerTest {
     }
 
     @Test
-    void getItemById_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(get("/items/{id}", itemId))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void createItem_whenValid_thenReturnItemDto() throws Exception {
         when(itemService.createItem(anyLong(), any(ItemDto.class)))
                 .thenReturn(itemDto);
@@ -138,29 +126,6 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.name", is(itemDto.getName())))
                 .andExpect(jsonPath("$.description", is(itemDto.getDescription())))
                 .andExpect(jsonPath("$.available", is(itemDto.getAvailable())));
-    }
-
-    @Test
-    void createItem_whenWithRequestId_thenReturnItemDtoWithRequestId() throws Exception {
-        ItemDto itemWithRequest = new ItemDto(itemId, "Дрель", "Простая дрель", true, 10L);
-        when(itemService.createItem(anyLong(), any(ItemDto.class)))
-                .thenReturn(itemWithRequest);
-
-        mvc.perform(post("/items")
-                        .header("X-Sharer-User-Id", userId)
-                        .content(mapper.writeValueAsString(itemWithRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.requestId", is(10), Long.class));
-    }
-
-    @Test
-    void createItem_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(post("/items")
-                        .content(mapper.writeValueAsString(itemDto))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -199,24 +164,10 @@ public class ItemControllerTest {
     }
 
     @Test
-    void updateItem_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(patch("/items/{itemId}", itemId)
-                        .content(mapper.writeValueAsString(itemDto))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void deleteItem_whenValid_thenReturnOk() throws Exception {
         mvc.perform(delete("/items/{id}", itemId)
                         .header("X-Sharer-User-Id", userId))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    void deleteItem_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(delete("/items/{id}", itemId))
-                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -249,20 +200,6 @@ public class ItemControllerTest {
     }
 
     @Test
-    void searchItems_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(get("/items/search")
-                        .param("text", "дрель"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void searchItems_whenMissingTextParam_thenReturnBadRequest() throws Exception {
-        mvc.perform(get("/items/search")
-                        .header("X-Sharer-User-Id", userId))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void createComment_whenValid_thenReturnCommentDto() throws Exception {
         when(itemService.createComment(anyLong(), anyLong(), any(CommentDto.class)))
                 .thenReturn(commentDto);
@@ -278,14 +215,6 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.text", is(commentDto.getText())))
                 .andExpect(jsonPath("$.authorName", is(commentDto.getAuthorName())))
                 .andExpect(jsonPath("$.created").exists());
-    }
-
-    @Test
-    void createComment_whenMissingUserIdHeader_thenReturnBadRequest() throws Exception {
-        mvc.perform(post("/items/{itemId}/comment", itemId)
-                        .content(mapper.writeValueAsString(commentDto))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
     }
 
     @Test

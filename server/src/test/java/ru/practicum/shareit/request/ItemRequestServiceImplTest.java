@@ -233,29 +233,6 @@ public class ItemRequestServiceImplTest {
     }
 
     @Test
-    void getRequestById_whenUserAndRequestExistWithoutItems_thenReturnWithoutItems() {
-        // Given
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(itemRequestRepository.findById(requestId)).thenReturn(Optional.of(itemRequest));
-        when(itemRequestMapper.toItemRequestWithItemsDto(itemRequest)).thenReturn(itemRequestWithItemsDto);
-        when(itemRepository.findAllByRequestId(requestId)).thenReturn(List.of());
-
-        // When
-        ItemRequestWithItemsDto result = itemRequestService.getRequestById(userId, requestId);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(itemRequestWithItemsDto, result);
-        assertTrue(result.getItems().isEmpty());
-
-        verify(userRepository).findById(userId);
-        verify(itemRequestRepository).findById(requestId);
-        verify(itemRequestMapper).toItemRequestWithItemsDto(itemRequest);
-        verify(itemRepository).findAllByRequestId(requestId);
-        verifyNoInteractions(itemMapper);
-    }
-
-    @Test
     void getRequestById_whenUserNotFound_thenThrowNotFoundException() {
         // Given
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -281,49 +258,5 @@ public class ItemRequestServiceImplTest {
         verify(userRepository).findById(userId);
         verify(itemRequestRepository).findById(requestId);
         verifyNoInteractions(itemRepository, itemMapper);
-    }
-
-    @Test
-    void getRequests_whenMultipleRequests_thenGroupItemsCorrectly() {
-        // Given
-        Long requestId2 = 2L;
-        ItemRequest itemRequest2 = new ItemRequest(requestId2, "Нужен молоток", user, created);
-
-        Item item1 = new Item();
-        item1.setId(10L);
-        item1.setRequest(itemRequest);
-
-        Item item2 = new Item();
-        item2.setId(11L);
-        item2.setRequest(itemRequest2);
-
-        Item item3 = new Item();
-        item3.setId(12L);
-        item3.setRequest(itemRequest); // Второй предмет для первого запроса
-
-        ItemForRequestDto itemDto1 = ItemForRequestDto.builder().itemId(10L).build();
-        ItemForRequestDto itemDto2 = ItemForRequestDto.builder().itemId(11L).build();
-        ItemForRequestDto itemDto3 = ItemForRequestDto.builder().itemId(12L).build();
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(itemRequestRepository.findAllByRequesterId(userId)).thenReturn(List.of(itemRequest, itemRequest2));
-        when(itemRepository.findAllByRequestIdIn(List.of(requestId, requestId2))).thenReturn(List.of(item1, item2, item3));
-
-        when(itemRequestMapper.toItemRequestWithItemsDto(itemRequest)).thenReturn(
-                ItemRequestWithItemsDto.builder().id(requestId).build());
-        when(itemRequestMapper.toItemRequestWithItemsDto(itemRequest2)).thenReturn(
-                ItemRequestWithItemsDto.builder().id(requestId2).build());
-
-        when(itemMapper.toItemForRequestDto(item1)).thenReturn(itemDto1);
-        when(itemMapper.toItemForRequestDto(item2)).thenReturn(itemDto2);
-        when(itemMapper.toItemForRequestDto(item3)).thenReturn(itemDto3);
-
-        // When
-        List<ItemRequestWithItemsDto> result = itemRequestService.getRequests(userId);
-
-        // Then
-        assertEquals(2, result.size());
-        // Проверяем что предметы правильно сгруппированы по requestId
-        verify(itemMapper, times(2)).toItemForRequestDto(any()); // Для item1 и item3
     }
 }

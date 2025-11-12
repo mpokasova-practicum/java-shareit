@@ -67,10 +67,12 @@ public class ItemRequestDtoJsonTest {
         assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo(dto.getId().intValue());
         assertThat(result).extractingJsonPathStringValue("$.description").isEqualTo(dto.getDescription());
         assertThat(result).extractingJsonPathStringValue("$.created").isEqualTo(dto.getCreated().format(formatter));
-        assertThat(result).extractingJsonPathStringValue("$.items[0].itemId").isEqualTo(itemDto.getItemId().intValue());
         assertThat(result).extractingJsonPathStringValue("$.items[0].name").isEqualTo(itemDto.getName());
-        assertThat(result).extractingJsonPathStringValue("$.items[0].ownerId").isEqualTo(itemDto.getOwnerId().intValue());
 
+        // ИСПРАВЛЕННАЯ СТРОКА - используем extractingJsonPathNumberValue для чисел
+        assertThat(result).extractingJsonPathNumberValue("$.items[0].ownerId").isEqualTo(itemDto.getOwnerId().intValue());
+        // Или также для itemId
+        assertThat(result).extractingJsonPathNumberValue("$.items[0].itemId").isEqualTo(itemDto.getItemId().intValue());
 
         ItemRequestWithItemsDto itemRequestDtoForTest = jsonLong.parseObject(result.getJson());
 

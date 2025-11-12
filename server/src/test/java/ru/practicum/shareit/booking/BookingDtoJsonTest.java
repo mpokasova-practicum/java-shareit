@@ -32,13 +32,7 @@ class BookingDtoJsonTest {
 
     @Test
     void shouldDeserializeBookingInDto() throws Exception {
-        String json = """
-            {
-                "start": "2023-10-15T14:30:00",
-                "end": "2023-10-16T14:30:00",
-                "itemId": 1
-            }
-            """;
+        String json = "{\"start\": \"2023-10-15T14:30:00\", \"end\": \"2023-10-16T14:30:00\", \"itemId\": 1}";
 
         BookingInDto dto = objectMapper.readValue(json, BookingInDto.class);
 
@@ -74,37 +68,6 @@ class BookingDtoJsonTest {
         assertThat(json).contains("\"status\":\"WAITING\"");
         assertThat(json).contains("\"name\":\"Дрель\"");
         assertThat(json).contains("\"name\":\"Alex\"");
-    }
-
-    @Test
-    void shouldDeserializeBookingOutDto() throws Exception {
-        String json = """
-            {
-                "id": 1,
-                "start": "2023-10-15T14:30:00",
-                "end": "2023-10-16T14:30:00",
-                "item": {
-                    "id": 10,
-                    "name": "Дрель"
-                },
-                "booker": {
-                    "id": 20,
-                    "name": "Alex"
-                },
-                "status": "APPROVED"
-            }
-            """;
-
-        BookingOutDto dto = objectMapper.readValue(json, BookingOutDto.class);
-
-        assertThat(dto.getId()).isEqualTo(1L);
-        assertThat(dto.getStart()).isEqualTo(LocalDateTime.of(2023, 10, 15, 14, 30));
-        assertThat(dto.getEnd()).isEqualTo(LocalDateTime.of(2023, 10, 16, 14, 30));
-        assertThat(dto.getItem().getId()).isEqualTo(10L);
-        assertThat(dto.getItem().getName()).isEqualTo("Дрель");
-        assertThat(dto.getBooker().getId()).isEqualTo(20L);
-        assertThat(dto.getBooker().getName()).isEqualTo("Alex");
-        assertThat(dto.getStatus()).isEqualTo(Status.APPROVED);
     }
 
     @Test

@@ -16,6 +16,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,7 +40,7 @@ public class UserControllerTest {
 
     @Test
     void getAllUsers() throws Exception {
-        Mockito.when(userService.getAllUsers())
+        when(userService.getAllUsers())
                 .thenReturn(List.of(userDto));
 
         mvc.perform(get("/users"))
@@ -52,10 +53,11 @@ public class UserControllerTest {
 
     @Test
     void getUserById() throws Exception {
-        Mockito.when(userService.createUser(any()))
+        when(userService.getUserById(userDto.getId()))
                 .thenReturn(userDto);
 
-        mvc.perform(get("/users/" + userDto.getId()))
+        mvc.perform(get("/users/{id}", userDto.getId())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(userDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(userDto.getName())))
@@ -64,7 +66,7 @@ public class UserControllerTest {
 
     @Test
     void createUser() throws Exception {
-        Mockito.when(userService.createUser(any()))
+        when(userService.createUser(any()))
                 .thenReturn(userDto);
 
         mvc.perform(post("/users")
@@ -80,7 +82,7 @@ public class UserControllerTest {
 
     @Test
     void updateUser() throws Exception {
-        Mockito.when(userService.updateUser(any(), any()))
+        when(userService.updateUser(any(), any()))
                 .thenReturn(userDto);
 
         mvc.perform(patch("/users/" + userDto.getId())

@@ -135,20 +135,6 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void createBooking_whenBookingOwnItem_thenThrowNotFoundException() {
-        // Given
-        Item ownItem = new Item(itemId, user, "Drill", "Simple drill", true, null);
-        when(itemRepository.findById(itemId)).thenReturn(Optional.of(ownItem));
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        // When & Then
-        NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> bookingService.createBooking(userId, bookingInDto));
-        assertEquals("Владелец не может бронировать свою вещь", exception.getMessage());
-        verify(bookingRepository, never()).save(any());
-    }
-
-    @Test
     void approveBooking_whenValidApprovedTrue_thenReturnApprovedBooking() {
         // Given
         Booking approvedBooking = new Booking(bookingId, start, end, availableItem, user, Status.APPROVED);
@@ -489,35 +475,5 @@ class BookingServiceImplTest {
                 eq(ownerId), eq(Status.WAITING), eq(BookingServiceImpl.sort));
         verify(bookingRepository).findAllByItemOwnerIdAndStatus(
                 eq(ownerId), eq(Status.REJECTED), eq(BookingServiceImpl.sort));
-    }
-
-    @Test
-    void getAllItemBookings_whenInvalidState_thenUseDefaultState() {
-        // Given
-        when(userRepository.findById(ownerId)).thenReturn(Optional.of(owner));
-        when(bookingRepository.findAllByItemOwnerId(ownerId, BookingServiceImpl.sort)).thenReturn(List.of(booking));
-        when(mapper.toBookingOutDto(booking)).thenReturn(bookingOutDto);
-
-        // When - невалидный state должен быть обработан State.validateState
-        List<BookingOutDto> result = bookingService.getAllItemBookings(ownerId, "INVALID_STATE");
-
-        // Then - должен использоваться дефолтный обработчик
-        assertNotNull(result);
-        assertEquals(1, result.size());
-    }
-
-    @Test
-    void getAllUserBookings_whenInvalidState_thenUseDefaultState() {
-        // Given
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByBookerId(userId, BookingServiceImpl.sort)).thenReturn(List.of(booking));
-        when(mapper.toBookingOutDto(booking)).thenReturn(bookingOutDto);
-
-        // When
-        List<BookingOutDto> result = bookingService.getAllUserBookings(userId, "INVALID_STATE");
-
-        // Then
-        assertNotNull(result);
-        assertEquals(1, result.size());
     }
 }

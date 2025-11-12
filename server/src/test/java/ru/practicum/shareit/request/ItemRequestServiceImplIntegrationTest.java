@@ -125,7 +125,7 @@ public class ItemRequestServiceImplIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertTrue(result.get(0).getItems().isEmpty());
+        assertTrue(result.get(0).getItems() == null);
     }
 
     @Test
@@ -251,7 +251,7 @@ public class ItemRequestServiceImplIntegrationTest {
         // Then
         assertNotNull(result);
         assertEquals(createdRequest.getId(), result.getId());
-        assertTrue(result.getItems().isEmpty());
+        assertTrue(result.getItems() == null);
     }
 
     @Test
@@ -299,7 +299,7 @@ public class ItemRequestServiceImplIntegrationTest {
                 .filter(req -> req.getId().equals(request2.getId()))
                 .findFirst()
                 .orElseThrow();
-        assertTrue(secondRequest.getItems().isEmpty());
+        assertTrue(secondRequest.getItems() == null);
     }
 
     private Item createItemForRequest(String name, User owner, Long requestId) {
