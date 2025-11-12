@@ -52,11 +52,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUser(Long id, UserDto userDto) {
-        repository.findByEmail(userDto.getEmail()).ifPresent(
-                user -> {
-                    throw new ValidationException("Пользователь с таким email уже существует");
-                }
-        );
         if (id == null) {
             log.warn("Id должен быть указан");
             throw new ValidationException("Id должен быть указан");
@@ -64,6 +59,14 @@ public class UserServiceImpl implements UserService {
         User oldUser = repository.findById(id).orElseThrow(
                 () -> new NotFoundException("Пользователь с данным id не найден")
         );
+        if (userDto.getEmail() != null && !userDto.getEmail().equals(oldUser.getEmail())) {
+            repository.findByEmail(userDto.getEmail()).ifPresent(
+                    user -> {
+                        throw new ValidationException("Пользователь с таким email уже существует");
+                    }
+            );
+        }
+
         if (userDto.getEmail() != null) {
             oldUser.setEmail(userDto.getEmail());
         }
